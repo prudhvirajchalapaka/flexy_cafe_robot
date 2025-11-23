@@ -463,7 +463,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 ## 📧 Contact
 
 For questions or support, please open an issue on GitHub or contact:
-- Email: [your-email@example.com]
+- Email: [prudhvirajchalapaka07@gmail.com]
 - GitHub: [@prudhvirajchalapaka](https://github.com/prudhvirajchalapaka)
 
 ## 🔗 Useful Links
