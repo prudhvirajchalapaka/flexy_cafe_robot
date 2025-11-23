@@ -1,0 +1,6 @@
+    # Request
+    int32 table_number
+    ---
+    # Response
+    bool success
+    string message

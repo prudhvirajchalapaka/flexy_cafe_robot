@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Side View - Butler System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .status-indicator {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid #4CAF50;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-rows: 1fr auto;
+            height: calc(100vh - 80px);
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .tables-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .location-info {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .location-title {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .location-coords {
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .table-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .table-card.active {
+            border-color: #FFA726;
+            box-shadow: 0 0 30px rgba(255, 167, 38, 0.5);
+        }
+
+        .table-card.ordered {
+            border-color: #2196F3;
+            box-shadow: 0 0 20px rgba(33, 150, 243, 0.3);
+        }
+
+        .table-icon {
+            font-size: 70px;
+            margin-bottom: 15px;
+        }
+
+        .table-number {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .table-location {
+            font-size: 13px;
+            opacity: 0.8;
+            margin-bottom: 15px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+        }
+
+        .button-group {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        .table-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .order-btn.disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .order-btn.enabled {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+        }
+
+        .order-btn.enabled:hover {
+            transform: scale(1.05);
+        }
+
+        .order-btn.ordered {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+        }
+
+        .cancel-btn {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .cancel-btn.disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .cancel-btn:hover:not(.disabled) {
+            transform: scale(1.05);
+        }
+
+        .confirm-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .confirm-btn.disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .confirm-btn.enabled {
+            animation: pulse 2s infinite;
+        }
+
+        .confirm-btn.enabled:hover {
+            transform: scale(1.05);
+        }
+
+        .confirm-btn.confirmed {
+            background: #2196F3;
+            color: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            50% { box-shadow: 0 0 20px 10px rgba(76, 175, 80, 0); }
+        }
+
+        .timer {
+            font-size: 14px;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .timer.warning {
+            background: rgba(255, 152, 0, 0.4);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50%, 100% { opacity: 1; }
+            25%, 75% { opacity: 0.5; }
+        }
+
+        .order-status {
+            font-size: 13px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .log-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .log-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+
+        .log-content {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .log-time {
+            color: #4CAF50;
+            margin-right: 10px;
+        }
+
+        .log-info { color: #2196F3; }
+        .log-success { color: #4CAF50; }
+        .log-warning { color: #FFA726; }
+        .log-error { color: #f44336; }
+
+        /* Modal Dialog */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-box {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 450px;
+            width: 90%;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .modal-icon {
+            font-size: 70px;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .modal-message {
+            font-size: 16px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 15px 35px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.confirm {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .modal-btn.cancel {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .modal-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="butler_menu.html" class="back-btn">← Back</a>
+        <div class="header-title">🪑 Table Side View</div>
+        <div class="status-indicator">● Connected</div>
+    </div>
+
+    <div class="main-content">
+        <div style="overflow-y: auto;">
+            <!-- Home Location Info -->
+            <div class="location-info">
+                <div class="location-title">🏠 Home Position</div>
+                <div class="location-coords">X: -0.15, Y: -0.26, Yaw: 0.0</div>
+            </div>
+
+            <div class="tables-section">
+                <!-- Table 1 -->
+                <div class="table-card" id="table1">
+                    <div class="table-icon">🪑</div>
+                    <div class="table-number">Table 1</div>
+                    <div class="table-location">
+                        📍 X: -0.47, Y: -3.16<br>
+                        Yaw: 0.0
+                    </div>
+                    <div class="order-status" id="status1" style="display: none;">
+                        Status: <span id="statusText1">Ready</span>
+                    </div>
+                    <div class="button-group">
+                        <button class="table-btn order-btn enabled" id="orderBtn1" onclick="showOrderDialog(1)">
+                            🍽️ Order Food
+                        </button>
+                        <button class="table-btn cancel-btn disabled" id="cancelBtn1" onclick="showCancelDialog(1)">
+                            ❌ Cancel Order
+                        </button>
+                        <button class="table-btn confirm-btn disabled" id="confirmBtn1" onclick="confirmTable(1)">
+                            ✓ Confirm Delivery
+                        </button>
+                    </div>
+                    <div class="timer" id="timer1" style="display: none;">
+                        ⏱️ <span id="time1">--</span>s
+                    </div>
+                </div>
+
+                <!-- Table 2 -->
+                <div class="table-card" id="table2">
+                    <div class="table-icon">🪑</div>
+                    <div class="table-number">Table 2</div>
+                    <div class="table-location">
+                        📍 X: 2.94, Y: 2.74<br>
+                        Yaw: -1.57
+                    </div>
+                    <div class="order-status" id="status2" style="display: none;">
+                        Status: <span id="statusText2">Ready</span>
+                    </div>
+                    <div class="button-group">
+                        <button class="table-btn order-btn enabled" id="orderBtn2" onclick="showOrderDialog(2)">
+                            🍽️ Order Food
+                        </button>
+                        <button class="table-btn cancel-btn disabled" id="cancelBtn2" onclick="showCancelDialog(2)">
+                            ❌ Cancel Order
+                        </button>
+                        <button class="table-btn confirm-btn disabled" id="confirmBtn2" onclick="confirmTable(2)">
+                            ✓ Confirm Delivery
+                        </button>
+                    </div>
+                    <div class="timer" id="timer2" style="display: none;">
+                        ⏱️ <span id="time2">--</span>s
+                    </div>
+                </div>
+
+                <!-- Table 3 -->
+                <div class="table-card" id="table3">
+                    <div class="table-icon">🪑</div>
+                    <div class="table-number">Table 3</div>
+                    <div class="table-location">
+                        📍 X: 5.58, Y: -0.26<br>
+                        Yaw: 3.14
+                    </div>
+                    <div class="order-status" id="status3" style="display: none;">
+                        Status: <span id="statusText3">Ready</span>
+                    </div>
+                    <div class="button-group">
+                        <button class="table-btn order-btn enabled" id="orderBtn3" onclick="showOrderDialog(3)">
+                            🍽️ Order Food
+                        </button>
+                        <button class="table-btn cancel-btn disabled" id="cancelBtn3" onclick="showCancelDialog(3)">
+                            ❌ Cancel Order
+                        </button>
+                        <button class="table-btn confirm-btn disabled" id="confirmBtn3" onclick="confirmTable(3)">
+                            ✓ Confirm Delivery
+                        </button>
+                    </div>
+                    <div class="timer" id="timer3" style="display: none;">
+                        ⏱️ <span id="time3">--</span>s
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Section -->
+        <div class="log-section">
+            <div class="log-title">📋 Activity Log</div>
+            <div class="log-content" id="logContent">
+                <div class="log-entry log-info">
+                    <span class="log-time">[00:00:00]</span>
+                    System initialized. Ready to take orders...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Confirmation Modal -->
+    <div class="modal-overlay" id="orderModal">
+        <div class="modal-box">
+            <div class="modal-icon">🍽️</div>
+            <div class="modal-title">Confirm Food Order</div>
+            <div class="modal-message">
+                Are you sure you want to order food for <strong>Table <span id="orderTableNum">-</span></strong>?
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn confirm" onclick="confirmOrder()">Yes, Order!</button>
+                <button class="modal-btn cancel" onclick="closeModal('orderModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Confirmation Modal -->
+    <div class="modal-overlay" id="cancelModal">
+        <div class="modal-box">
+            <div class="modal-icon">❌</div>
+            <div class="modal-title">Cancel Order</div>
+            <div class="modal-message">
+                Are you sure you want to cancel the order for <strong>Table <span id="cancelTableNum">-</span></strong>?
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn confirm" onclick="confirmCancel()">Yes, Cancel</button>
+                <button class="modal-btn cancel" onclick="closeModal('cancelModal')">No, Keep Order</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let activeTimers = {};
+        let tableStates = {
+            1: { ordered: false, confirmed: false },
+            2: { ordered: false, confirmed: false },
+            3: { ordered: false, confirmed: false }
+        };
+        let currentActionTable = null;
+
+        addLog('System ready. Waiting for orders...', 'info');
+
+        // Modal Functions
+        function showOrderDialog(tableNum) {
+            if (tableStates[tableNum].ordered) {
+                addLog(`Table ${tableNum} already has an active order`, 'warning');
+                return;
+            }
+            currentActionTable = tableNum;
+            document.getElementById('orderTableNum').textContent = tableNum;
+            document.getElementById('orderModal').classList.add('show');
+        }
+
+        function showCancelDialog(tableNum) {
+            if (!tableStates[tableNum].ordered) {
+                return;
+            }
+            currentActionTable = tableNum;
+            document.getElementById('cancelTableNum').textContent = tableNum;
+            document.getElementById('cancelModal').classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            currentActionTable = null;
+        }
+
+        function confirmOrder() {
+            if (currentActionTable) {
+                placeOrder(currentActionTable);
+                closeModal('orderModal');
+            }
+        }
+
+        function confirmCancel() {
+            if (currentActionTable) {
+                cancelOrder(currentActionTable);
+                closeModal('cancelModal');
+            }
+        }
+
+        function placeOrder(tableNum) {
+            const card = document.getElementById(`table${tableNum}`);
+            const orderBtn = document.getElementById(`orderBtn${tableNum}`);
+            const cancelBtn = document.getElementById(`cancelBtn${tableNum}`);
+            const status = document.getElementById(`status${tableNum}`);
+            const statusText = document.getElementById(`statusText${tableNum}`);
+
+            tableStates[tableNum].ordered = true;
+            card.classList.add('ordered');
+            
+            orderBtn.classList.remove('enabled');
+            orderBtn.classList.add('ordered');
+            orderBtn.textContent = '🕐 Order Placed';
+            
+            cancelBtn.classList.remove('disabled');
+            
+            status.style.display = 'block';
+            statusText.textContent = 'Order Sent to Kitchen';
+
+            addLog(`Table ${tableNum}: Food order placed`, 'success');
+            
+            // Simulate robot arrival after some time
+            setTimeout(() => simulateRobotArrival(tableNum), 5000 + (tableNum * 2000));
+        }
+
+        function cancelOrder(tableNum) {
+            const card = document.getElementById(`table${tableNum}`);
+            const orderBtn = document.getElementById(`orderBtn${tableNum}`);
+            const cancelBtn = document.getElementById(`cancelBtn${tableNum}`);
+            const confirmBtn = document.getElementById(`confirmBtn${tableNum}`);
+            const status = document.getElementById(`status${tableNum}`);
+
+            tableStates[tableNum].ordered = false;
+            card.classList.remove('ordered', 'active');
+            
+            orderBtn.classList.remove('ordered');
+            orderBtn.classList.add('enabled');
+            orderBtn.textContent = '🍽️ Order Food';
+            
+            cancelBtn.classList.add('disabled');
+            confirmBtn.classList.remove('enabled');
+            confirmBtn.classList.add('disabled');
+            
+            status.style.display = 'none';
+
+            if (activeTimers[tableNum]) {
+                clearInterval(activeTimers[tableNum]);
+                delete activeTimers[tableNum];
+                document.getElementById(`timer${tableNum}`).style.display = 'none';
+            }
+
+            addLog(`Table ${tableNum}: Order cancelled`, 'warning');
+        }
+
+        function simulateRobotArrival(tableNum) {
+            if (!tableStates[tableNum].ordered) return;
+            activateTable(tableNum, 20);
+        }
+
+        function activateTable(tableNum, timeout) {
+            const card = document.getElementById(`table${tableNum}`);
+            const confirmBtn = document.getElementById(`confirmBtn${tableNum}`);
+            const timerDiv = document.getElementById(`timer${tableNum}`);
+            const timeSpan = document.getElementById(`time${tableNum}`);
+            const statusText = document.getElementById(`statusText${tableNum}`);
+
+            card.classList.add('active');
+            confirmBtn.classList.remove('disabled');
+            confirmBtn.classList.add('enabled');
+            timerDiv.style.display = 'block';
+            statusText.textContent = 'Robot Arrived! Confirm Now';
+
+            addLog(`Table ${tableNum}: Robot arrived with delivery!`, 'warning');
+
+            let remaining = timeout;
+            timeSpan.textContent = remaining;
+
+            activeTimers[tableNum] = setInterval(() => {
+                remaining--;
+                timeSpan.textContent = remaining;
+
+                if (remaining <= 5) {
+                    timerDiv.classList.add('warning');
+                }
+
+                if (remaining <= 0) {
+                    clearInterval(activeTimers[tableNum]);
+                    deactivateTable(tableNum, true);
+                }
+            }, 1000);
+        }
+
+        function deactivateTable(tableNum, timeout = false) {
+            const card = document.getElementById(`table${tableNum}`);
+            const confirmBtn = document.getElementById(`confirmBtn${tableNum}`);
+            const timerDiv = document.getElementById(`timer${tableNum}`);
+            const statusText = document.getElementById(`statusText${tableNum}`);
+
+            card.classList.remove('active');
+            confirmBtn.classList.remove('enabled');
+            confirmBtn.classList.add('disabled');
+            timerDiv.style.display = 'none';
+            timerDiv.classList.remove('warning');
+
+            if (activeTimers[tableNum]) {
+                clearInterval(activeTimers[tableNum]);
+                delete activeTimers[tableNum];
+            }
+
+            if (timeout) {
+                statusText.textContent = 'Delivery Timeout!';
+                addLog(`Table ${tableNum}: Confirmation timeout!`, 'error');
+                
+                setTimeout(() => {
+                    cancelOrder(tableNum);
+                }, 2000);
+            }
+        }
+
+        function confirmTable(tableNum) {
+            const confirmBtn = document.getElementById(`confirmBtn${tableNum}`);
+            
+            if (!confirmBtn.classList.contains('enabled')) {
+                return;
+            }
+
+            confirmBtn.classList.remove('enabled');
+            confirmBtn.classList.add('confirmed');
+            confirmBtn.textContent = 'Confirmed! ✓';
+            
+            const statusText = document.getElementById(`statusText${tableNum}`);
+            statusText.textContent = 'Delivered Successfully!';
+
+            tableStates[tableNum].confirmed = true;
+
+            addLog(`Table ${tableNum}: Delivery confirmed!`, 'success');
+
+            if (activeTimers[tableNum]) {
+                clearInterval(activeTimers[tableNum]);
+                delete activeTimers[tableNum];
+            }
+
+            setTimeout(() => {
+                resetTable(tableNum);
+            }, 3000);
+        }
+
+        function resetTable(tableNum) {
+            const card = document.getElementById(`table${tableNum}`);
+            const orderBtn = document.getElementById(`orderBtn${tableNum}`);
+            const cancelBtn = document.getElementById(`cancelBtn${tableNum}`);
+            const confirmBtn = document.getElementById(`confirmBtn${tableNum}`);
+            const status = document.getElementById(`status${tableNum}`);
+
+            card.classList.remove('ordered', 'active');
+            
+            orderBtn.classList.add('enabled');
+            orderBtn.textContent = '🍽️ Order Food';
+            
+            cancelBtn.classList.add('disabled');
+            
+            confirmBtn.classList.remove('confirmed');
+            confirmBtn.classList.add('disabled');
+            confirmBtn.textContent = '✓ Confirm Delivery';
+            
+            status.style.display = 'none';
+
+            tableStates[tableNum] = { ordered: false, confirmed: false };
+            
+            addLog(`Table ${tableNum}: Ready for new order`, 'info');
+        }
+
+        function addLog(message, type = 'info') {
+            const logContent = document.getElementById('logContent');
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.innerHTML = `<span class="log-time">[${timeStr}]</span>${message}`;
+            
+            logContent.appendChild(entry);
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+    </script>
+</body>
+</html>

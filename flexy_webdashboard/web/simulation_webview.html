@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation Web View</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .header-title {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 350px;
+            height: calc(100vh - 60px);
+            gap: 2px;
+            background: #0a0a15;
+        }
+
+        .view-section {
+            background: #0f0f1e;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .section-header {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .section-content {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Camera View */
+        .camera-container {
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .placeholder-text {
+            text-align: center;
+            opacity: 0.5;
+        }
+
+        .placeholder-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        /* Map View */
+        .map-container {
+            width: 100%;
+            height: 100%;
+            background: #1a1a2e;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-canvas {
+            width: 100%;
+            height: 100%;
+            background: #2a2a3e;
+        }
+
+        .robot-marker {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #4CAF50;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+
+        .robot-marker::before {
+            content: '🤖';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+        }
+
+        .location-marker {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+        }
+
+        .marker-dot {
+            width: 15px;
+            height: 15px;
+            background: #2196F3;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+        }
+
+        .marker-label {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .map-legend {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 11px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 8px;
+            border: 2px solid #fff;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: #16213e;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #4CAF50;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 12px;
+        }
+
+        .info-label {
+            opacity: 0.7;
+        }
+
+        .info-value {
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .control-btn.active {
+            background: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+        .log-container {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 6px 10px;
+            margin: 4px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+            border-left: 3px solid #4CAF50;
+        }
+
+        .log-time {
+            color: #4CAF50;
+            margin-right: 8px;
+        }
+
+        .log-info { border-left-color: #2196F3; }
+        .log-success { border-left-color: #4CAF50; }
+        .log-warning { border-left-color: #FFA726; }
+        .log-error { border-left-color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="index.html" class="back-btn">← Back to Home</a>
+        <div class="header-title">🖥️ Simulation Web View</div>
+        <div class="status-badge">● Live</div>
+    </div>
+
+    <div class="main-container">
+        <!-- Camera View -->
+        <div class="view-section">
+            <div class="section-header">📹 Robot Camera Feed</div>
+            <div class="section-content">
+                <div class="camera-container">
+                    <div class="placeholder-text">
+                        <div class="placeholder-icon">📹</div>
+                        <h3>Camera Feed</h3>
+                        <p>Connect ROS bridge to view live stream</p>
+                        <p style="margin-top: 10px; font-size: 12px; opacity: 0.7;">
+                            Topic: /camera/image
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map View -->
+        <div class="view-section">
+            <div class="section-header">🗺️ Live Map & Robot Position</div>
+            <div class="section-content">
+                <div class="map-container">
+                    <canvas class="map-canvas" id="mapCanvas"></canvas>
+                    
+                    <!-- Robot Marker -->
+                    <div class="robot-marker" id="robotMarker" style="left: 50%; top: 50%;"></div>
+                    
+                    <!-- Location Markers -->
+                    <div class="location-marker" id="homeMarker" style="display: none;">
+                        <div class="marker-dot" style="background: #4CAF50;"></div>
+                        <div class="marker-label">🏠 Home</div>
+                    </div>
+                    
+                    <div class="location-marker" id="kitchenMarker" style="display: none;">
+                        <div class="marker-dot" style="background: #FF9800;"></div>
+                        <div class="marker-label">👨‍🍳 Kitchen</div>
+                    </div>
+                    
+                    <div class="location-marker" id="table1Marker" style="display: none;">
+                        <div class="marker-dot" style="background: #2196F3;"></div>
+                        <div class="marker-label">🪑 Table 1</div>
+                    </div>
+                    
+                    <div class="location-marker" id="table2Marker" style="display: none;">
+                        <div class="marker-dot" style="background: #2196F3;"></div>
+                        <div class="marker-label">🪑 Table 2</div>
+                    </div>
+                    
+                    <div class="location-marker" id="table3Marker" style="display: none;">
+                        <div class="marker-dot" style="background: #2196F3;"></div>
+                        <div class="marker-label">🪑 Table 3</div>
+                    </div>
+
+                    <!-- Map Legend -->
+                    <div class="map-legend">
+                        <div style="font-weight: bold; margin-bottom: 8px;">Legend</div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #4CAF50;"></div>
+                            <span>Robot / Home</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #FF9800;"></div>
+                            <span>Kitchen</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #2196F3;"></div>
+                            <span>Tables</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="section-title">📊 Robot Status</div>
+                <div class="info-row">
+                    <span class="info-label">State:</span>
+                    <span class="info-value" id="robotState">Idle</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Battery:</span>
+                    <span class="info-value" id="robotBattery">98%</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Location:</span>
+                    <span class="info-value" id="robotLocation">Home</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-title">📍 Position (Map Frame)</div>
+                <div class="info-row">
+                    <span class="info-label">X:</span>
+                    <span class="info-value" id="posX">-0.15</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Y:</span>
+                    <span class="info-value" id="posY">-0.26</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Yaw:</span>
+                    <span class="info-value" id="posYaw">0.0</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-title">🎥 Camera Info</div>
+                <div class="info-row">
+                    <span class="info-label">FPS:</span>
+                    <span class="info-value" id="cameraFPS">30</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Resolution:</span>
+                    <span class="info-value">640x480</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Topic:</span>
+                    <span class="info-value">/camera/image</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-title">🎮 Controls</div>
+                <div class="control-group">
+                    <button class="control-btn" onclick="toggleCamera()">📹 Camera</button>
+                    <button class="control-btn active" onclick="toggleMap()">🗺️ Map</button>
+                    <button class="control-btn" onclick="takeSnapshot()">📸 Snapshot</button>
+                    <button class="control-btn" onclick="toggleRecording()">🔴 Record</button>
+                </div>
+            </div>
+
+            <div class="log-container">
+                <div class="section-title">📋 Activity Log</div>
+                <div class="log-entry log-info">
+                    <span class="log-time">[00:00:00]</span>
+                    System initialized
+                </div>
+                <div class="log-entry log-info" id="logContent">
+                    <span class="log-time">[00:00:01]</span>
+                    Map loaded successfully
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Positions in map coordinates (scaled for display)
+        const locations = {
+            home: { x: -0.15, y: -0.26, yaw: 0.0 },
+            kitchen: { x: 4.20, y: -5.26, yaw: 1.57 },
+            table1: { x: -0.47, y: -3.16, yaw: 0.0 },
+            table2: { x: 2.94, y: 2.74, yaw: -1.57 },
+            table3: { x: 5.58, y: -0.26, yaw: 3.14 }
+        };
+
+        // Map bounds
+        const mapBounds = {
+            minX: -8, maxX: 7,
+            minY: -8, maxY: 7
+        };
+
+        let robotPosition = { ...locations.home };
+        let canvas, ctx;
+        let isRecording = false;
+
+        // Initialize
+        window.onload = function() {
+            canvas = document.getElementById('mapCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            drawMap();
+            updateRobotMarker();
+            positionLocationMarkers();
+            
+            addLog('Robot position tracking active', 'success');
+            
+            // Simulate robot movement
+            setTimeout(() => simulateRobotMovement(), 3000);
+        };
+
+        // Draw the map
+        function drawMap() {
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Clear canvas
+            ctx.fillStyle = '#2a2a3e';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            
+            const gridSize = 50;
+            for (let x = 0; x < width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            
+            // Draw cafe outline (simplified)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(width * 0.15, height * 0.15, width * 0.7, height * 0.7);
+            
+            // Draw robot path
+            drawPath();
+        }
+
+        function drawPath() {
+            // Draw a simple path between locations
+            ctx.strokeStyle = 'rgba(76, 175, 80, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            
+            const homePos = worldToScreen(locations.home.x, locations.home.y);
+            const kitchenPos = worldToScreen(locations.kitchen.x, locations.kitchen.y);
+            
+            ctx.beginPath();
+            ctx.moveTo(homePos.x, homePos.y);
+            ctx.lineTo(kitchenPos.x, kitchenPos.y);
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
+        }
+
+        // Convert world coordinates to screen coordinates
+        function worldToScreen(worldX, worldY) {
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            const scaleX = width / (mapBounds.maxX - mapBounds.minX);
+            const scaleY = height / (mapBounds.maxY - mapBounds.minY);
+            
+            const screenX = (worldX - mapBounds.minX) * scaleX;
+            const screenY = height - ((worldY - mapBounds.minY) * scaleY);
+            
+            return { x: screenX, y: screenY };
+        }
+
+        // Update robot marker position
+        function updateRobotMarker() {
+            const pos = worldToScreen(robotPosition.x, robotPosition.y);
+            const marker = document.getElementById('robotMarker');
+            marker.style.left = pos.x + 'px';
+            marker.style.top = pos.y + 'px';
+            
+            // Update position display
+            document.getElementById('posX').textContent = robotPosition.x.toFixed(2);
+            document.getElementById('posY').textContent = robotPosition.y.toFixed(2);
+            document.getElementById('posYaw').textContent = robotPosition.yaw.toFixed(2);
+        }
+
+        // Position location markers
+        function positionLocationMarkers() {
+            const markers = [
+                { id: 'homeMarker', loc: locations.home },
+                { id: 'kitchenMarker', loc: locations.kitchen },
+                { id: 'table1Marker', loc: locations.table1 },
+                { id: 'table2Marker', loc: locations.table2 },
+                { id: 'table3Marker', loc: locations.table3 }
+            ];
+            
+            markers.forEach(m => {
+                const pos = worldToScreen(m.loc.x, m.loc.y);
+                const marker = document.getElementById(m.id);
+                marker.style.left = pos.x + 'px';
+                marker.style.top = pos.y + 'px';
+                marker.style.display = 'block';
+            });
+        }
+
+        // Simulate robot movement
+        function simulateRobotMovement() {
+            const sequence = [
+                { loc: locations.kitchen, name: 'Kitchen', duration: 3000 },
+                { loc: locations.table1, name: 'Table 1', duration: 3000 },
+                { loc: locations.table2, name: 'Table 2', duration: 3000 },
+                { loc: locations.kitchen, name: 'Kitchen', duration: 3000 },
+                { loc: locations.home, name: 'Home', duration: 2000 }
+            ];
+            
+            let index = 0;
+            
+            function moveNext() {
+                if (index >= sequence.length) {
+                    index = 0; // Loop
+                }
+                
+                const target = sequence[index];
+                animateRobotMovement(target.loc, target.name, () => {
+                    setTimeout(() => {
+                        index++;
+                        moveNext();
+                    }, target.duration);
+                });
+            }
+            
+            moveNext();
+        }
+
+        function animateRobotMovement(targetLoc, locationName, callback) {
+            const startPos = { ...robotPosition };
+            const duration = 2000;
+            const startTime = Date.now();
+            
+            document.getElementById('robotState').textContent = `Moving to ${locationName}`;
+            addLog(`Robot moving to ${locationName}`, 'info');
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Linear interpolation
+                robotPosition.x = startPos.x + (targetLoc.x - startPos.x) * progress;
+                robotPosition.y = startPos.y + (targetLoc.y - startPos.y) * progress;
+                robotPosition.yaw = startPos.yaw + (targetLoc.yaw - startPos.yaw) * progress;
+                
+                updateRobotMarker();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    document.getElementById('robotState').textContent = `At ${locationName}`;
+                    document.getElementById('robotLocation').textContent = locationName;
+                    addLog(`Robot arrived at ${locationName}`, 'success');
+                    if (callback) callback();
+                }
+            }
+            
+            animate();
+        }
+
+        // Control functions
+        function toggleCamera() {
+            addLog('Camera view toggled', 'info');
+        }
+
+        function toggleMap() {
+            addLog('Map view active', 'info');
+        }
+
+        function takeSnapshot() {
+            addLog('Snapshot captured', 'success');
+        }
+
+        function toggleRecording() {
+            isRecording = !isRecording;
+            if (isRecording) {
+                addLog('Recording started', 'warning');
+            } else {
+                addLog('Recording stopped', 'info');
+            }
+        }
+
+        function addLog(message, type = 'info') {
+            const logContainer = document.querySelector('.log-container');
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.innerHTML = `<span class="log-time">[${timeStr}]</span>${message}`;
+            
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            drawMap();
+            updateRobotMarker();
+            positionLocationMarkers();
+        });
+
+        // Initial logs
+        setTimeout(() => addLog('Connecting to ROS bridge...', 'info'), 2000);
+        setTimeout(() => addLog('Camera topic detected: /camera/image', 'success'), 4000);
+    </script>
+</body>
+</html>

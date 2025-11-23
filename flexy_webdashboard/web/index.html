@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flexy Robot - Welcome</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 1200px;
+            padding: 40px;
+        }
+
+        .logo {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 20px;
+            margin-bottom: 50px;
+            opacity: 0.9;
+        }
+
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .mode-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            text-decoration: none;
+            color: white;
+            display: block;
+        }
+
+        .mode-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .mode-card.coming-soon {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .mode-card.coming-soon:hover {
+            transform: none;
+        }
+
+        .mode-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .mode-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .mode-desc {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .coming-soon-badge {
+            background: #ff6b6b;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        .footer {
+            margin-top: 40px;
+            opacity: 0.7;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🤖</div>
+        <h1>Welcome to Flexy Robot System</h1>
+        <p class="subtitle">Choose your operation mode</p>
+
+        <div class="mode-grid">
+            <!-- Simulation Modes (Active) -->
+            <a href="simulation_webview.html" class="mode-card">
+                <div class="mode-icon">🖥️</div>
+                <div class="mode-title">Simulation Web View</div>
+                <div class="mode-desc">View robot simulation in web browser</div>
+            </a>
+
+            <a href="butler_menu.html" class="mode-card">
+                <div class="mode-icon">🍽️</div>
+                <div class="mode-title">Simulation Butler View</div>
+                <div class="mode-desc">Interactive butler delivery system</div>
+            </a>
+
+            <!-- Real-time Modes (Coming Soon) -->
+            <div class="mode-card coming-soon">
+                <div class="mode-icon">📹</div>
+                <div class="mode-title">Real-time Web View</div>
+                <div class="mode-desc">Live robot camera feed</div>
+                <span class="coming-soon-badge">COMING SOON</span>
+            </div>
+
+            <div class="mode-card coming-soon">
+                <div class="mode-icon">🤖</div>
+                <div class="mode-title">Real-time Butler View</div>
+                <div class="mode-desc">Live butler operations</div>
+                <span class="coming-soon-badge">COMING SOON</span>
+            </div>
+
+            <div class="mode-card coming-soon">
+                <div class="mode-icon">🔄</div>
+                <div class="mode-title">Digital Twin View</div>
+                <div class="mode-desc">Real-time digital twin synchronization</div>
+                <span class="coming-soon-badge">COMING SOON</span>
+            </div>
+        </div>
+
+        <div class="footer">
+            Flexy Robot Butler System v1.0 | ROS 2 Powered
+        </div>
+    </div>
+</body>
+</html>

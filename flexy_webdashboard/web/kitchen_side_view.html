@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitchen Admin Panel - Protected</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2d1b00 0%, #5d3a1a 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Login Screen */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 50px 40px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .login-icon {
+            font-size: 80px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .login-title {
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .login-subtitle {
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #FF9800;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 152, 0, 0.4);
+        }
+
+        .error-message {
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid #f44336;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0.7;
+        }
+
+        .back-link a {
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-link a:hover {
+            opacity: 1;
+        }
+
+        /* Main Kitchen Interface */
+        .kitchen-interface {
+            display: none;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-btn, .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover, .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .logout-btn {
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid #f44336;
+        }
+
+        .logout-btn:hover {
+            background: rgba(244, 67, 54, 0.5);
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .admin-badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid #f44336;
+        }
+
+        .status-indicator {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid #4CAF50;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            height: calc(100vh - 80px);
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .location-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .location-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .location-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .location-title {
+            font-size: 16px;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .location-coords {
+            font-size: 20px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .kitchen-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .action-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .action-panel.active {
+            border-color: #FFA726;
+            box-shadow: 0 0 30px rgba(255, 167, 38, 0.5);
+        }
+
+        .panel-icon {
+            font-size: 100px;
+            margin-bottom: 30px;
+        }
+
+        .panel-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .panel-description {
+            font-size: 16px;
+            opacity: 0.8;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .action-btn {
+            width: 100%;
+            max-width: 300px;
+            padding: 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 0;
+        }
+
+        .action-btn.disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .action-btn.enabled {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .action-btn.enabled:hover {
+            transform: scale(1.05);
+        }
+
+        .action-btn.confirmed {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .action-btn.return-enabled {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .action-btn.return-confirmed {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); }
+            50% { box-shadow: 0 0 30px 15px rgba(255, 152, 0, 0); }
+        }
+
+        .timer {
+            font-size: 18px;
+            margin-top: 15px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        .timer.warning {
+            background: rgba(255, 152, 0, 0.4);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50%, 100% { opacity: 1; }
+            25%, 75% { opacity: 0.5; }
+        }
+
+        .order-info {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+
+        .order-info-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #FFA726;
+        }
+
+        .log-section {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            padding: 20px;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .log-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #FF9800;
+        }
+
+        .log-content {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .log-time {
+            color: #FF9800;
+            margin-right: 10px;
+        }
+
+        .log-info { color: #2196F3; }
+        .log-success { color: #4CAF50; }
+        .log-warning { color: #FFA726; }
+        .log-error { color: #f44336; }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-container" id="loginScreen">
+        <div class="login-box">
+            <div class="login-icon">🔐</div>
+            <div class="login-title">Kitchen Admin Panel</div>
+            <div class="login-subtitle">Enter credentials to access</div>
+            
+            <form onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <label class="input-label">Username</label>
+                    <input type="text" class="input-field" id="username" placeholder="Enter username" required>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Password</label>
+                    <input type="password" class="input-field" id="password" placeholder="Enter password" required>
+                </div>
+                
+                <button type="submit" class="login-btn">🔓 Login to Kitchen Panel</button>
+                
+                <div class="error-message" id="errorMessage">
+                    ❌ Invalid credentials! Please try again.
+                </div>
+            </form>
+            
+            <div class="back-link">
+                <a href="butler_menu.html">← Back to Butler Menu</a>
+            </div>
+            
+            <div style="margin-top: 30px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 12px; text-align: center;">
+                <strong>Demo Credentials:</strong><br>
+                Username: admin<br>
+                Password: kitchen123
+            </div>
+        </div>
+    </div>
+
+    <!-- Kitchen Interface (hidden until login) -->
+    <div class="kitchen-interface" id="kitchenInterface">
+        <div class="header">
+            <div class="header-left">
+                <a href="butler_menu.html" class="back-btn">← Back</a>
+                <div class="admin-badge">🔐 ADMIN</div>
+            </div>
+            <div class="header-title">👨‍🍳 Kitchen Admin Panel</div>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <div class="status-indicator">● Connected</div>
+                <button class="logout-btn" onclick="handleLogout()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Location Information -->
+            <div class="location-info">
+                <div class="location-card">
+                    <div class="location-icon">🏠</div>
+                    <div class="location-title">Home Position</div>
+                    <div class="location-coords">X: -0.15, Y: -0.26, Yaw: 0.0</div>
+                </div>
+                <div class="location-card">
+                    <div class="location-icon">👨‍🍳</div>
+                    <div class="location-title">Kitchen Position</div>
+                    <div class="location-coords">X: 4.20, Y: -5.26, Yaw: 1.57</div>
+                </div>
+            </div>
+
+            <!-- Kitchen Actions -->
+            <div class="kitchen-section">
+                <!-- Order Pickup Panel -->
+                <div class="action-panel" id="pickupPanel">
+                    <div class="panel-icon">📦</div>
+                    <div class="panel-title">Order Pickup</div>
+                    <div class="panel-description">
+                        Confirm when food is ready and loaded onto the robot for delivery
+                    </div>
+
+                    <div class="order-info" id="pickupOrderInfo" style="display: none;">
+                        <div class="order-info-title">Current Order:</div>
+                        <div id="pickupOrderDetails">Waiting for order...</div>
+                    </div>
+
+                    <button class="action-btn disabled" id="pickupBtn" onclick="confirmPickup()">
+                        Waiting for Robot...
+                    </button>
+                    <div class="timer" id="pickupTimer" style="display: none;">
+                        ⏱️ <span id="pickupTime">--</span>s
+                    </div>
+                </div>
+
+                <!-- Food Return Panel -->
+                <div class="action-panel" id="returnPanel">
+                    <div class="panel-icon">↩️</div>
+                    <div class="panel-title">Food Return</div>
+                    <div class="panel-description">
+                        Confirm receipt of undelivered/cancelled food items returned by the robot
+                    </div>
+
+                    <div class="order-info" id="returnOrderInfo" style="display: none;">
+                        <div class="order-info-title">Returned Items:</div>
+                        <div id="returnOrderDetails">No returns yet...</div>
+                    </div>
+
+                    <button class="action-btn disabled" id="returnBtn" onclick="confirmReturn()">
+                        Waiting for Returns...
+                    </button>
+                    <div class="timer" id="returnTimer" style="display: none;">
+                        ⏱️ <span id="returnTime">--</span>s
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log Section -->
+            <div class="log-section">
+                <div class="log-title">📋 Kitchen Activity Log</div>
+                <div class="log-content" id="logContent">
+                    <div class="log-entry log-info">
+                        <span class="log-time">[00:00:00]</span>
+                        Kitchen system initialized. Ready to process orders...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Authentication
+        const VALID_CREDENTIALS = {
+            username: 'admin',
+            password: 'kitchen123'
+        };
+
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            if (username === VALID_CREDENTIALS.username && password === VALID_CREDENTIALS.password) {
+                // Successful login
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('kitchenInterface').style.display = 'block';
+                addLog('Admin logged in successfully', 'success');
+                
+                // Store login state (optional)
+                sessionStorage.setItem('kitchenAdmin', 'true');
+            } else {
+                // Failed login
+                errorMessage.style.display = 'block';
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.removeItem('kitchenAdmin');
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('kitchenInterface').style.display = 'none';
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                addLog('Admin logged out', 'warning');
+            }
+        }
+
+        // Check if already logged in
+        window.onload = function() {
+            if (sessionStorage.getItem('kitchenAdmin') === 'true') {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('kitchenInterface').style.display = 'block';
+            }
+        };
+
+        // Kitchen functionality (same as before)
+        let pickupTimer = null;
+        let returnTimer = null;
+        let currentOrder = null;
+
+        function simulatePickupRequest(orderTables) {
+            activatePickup(orderTables, 30);
+        }
+
+        function simulateReturnRequest(returnTables) {
+            activateReturn(returnTables, 20);
+        }
+
+        function activatePickup(orderTables, timeout) {
+            const panel = document.getElementById('pickupPanel');
+            const btn = document.getElementById('pickupBtn');
+            const timerDiv = document.getElementById('pickupTimer');
+            const timeSpan = document.getElementById('pickupTime');
+            const orderInfo = document.getElementById('pickupOrderInfo');
+            const orderDetails = document.getElementById('pickupOrderDetails');
+
+            currentOrder = orderTables;
+            panel.classList.add('active');
+            btn.classList.remove('disabled');
+            btn.classList.add('enabled');
+            btn.textContent = 'Confirm Food Ready ✓';
+            timerDiv.style.display = 'block';
+            orderInfo.style.display = 'block';
+            orderDetails.textContent = `Tables: ${orderTables.join(', ')}`;
+
+            addLog(`Robot arrived at kitchen. Order for tables: ${orderTables.join(', ')}`, 'warning');
+
+            let remaining = timeout;
+            timeSpan.textContent = remaining;
+
+            pickupTimer = setInterval(() => {
+                remaining--;
+                timeSpan.textContent = remaining;
+
+                if (remaining <= 10) {
+                    timerDiv.classList.add('warning');
+                }
+
+                if (remaining <= 0) {
+                    clearInterval(pickupTimer);
+                    deactivatePickup(true);
+                }
+            }, 1000);
+        }
+
+        function deactivatePickup(timeout = false) {
+            const panel = document.getElementById('pickupPanel');
+            const btn = document.getElementById('pickupBtn');
+            const timerDiv = document.getElementById('pickupTimer');
+            const orderInfo = document.getElementById('pickupOrderInfo');
+
+            panel.classList.remove('active');
+            btn.classList.remove('enabled');
+            btn.classList.add('disabled');
+            btn.textContent = 'Waiting for Robot...';
+            timerDiv.style.display = 'none';
+            timerDiv.classList.remove('warning');
+            orderInfo.style.display = 'none';
+
+            if (pickupTimer) {
+                clearInterval(pickupTimer);
+                pickupTimer = null;
+            }
+
+            if (timeout) {
+                addLog('Kitchen confirmation timeout! Order cancelled.', 'error');
+            }
+
+            currentOrder = null;
+        }
+
+        function confirmPickup() {
+            const btn = document.getElementById('pickupBtn');
+            
+            if (!btn.classList.contains('enabled')) {
+                return;
+            }
+
+            btn.classList.remove('enabled');
+            btn.classList.add('confirmed');
+            btn.textContent = 'Confirmed! Food Loaded ✓';
+            
+            addLog(`Kitchen confirmed! Food loaded for tables: ${currentOrder.join(', ')}`, 'success');
+
+            if (pickupTimer) {
+                clearInterval(pickupTimer);
+                pickupTimer = null;
+            }
+
+            setTimeout(() => {
+                deactivatePickup();
+            }, 2000);
+        }
+
+        function activateReturn(returnTables, timeout) {
+            const panel = document.getElementById('returnPanel');
+            const btn = document.getElementById('returnBtn');
+            const timerDiv = document.getElementById('returnTimer');
+            const timeSpan = document.getElementById('returnTime');
+            const orderInfo = document.getElementById('returnOrderInfo');
+            const orderDetails = document.getElementById('returnOrderDetails');
+
+            panel.classList.add('active');
+            btn.classList.remove('disabled');
+            btn.classList.add('return-enabled');
+            btn.textContent = 'Confirm Return Received ✓';
+            timerDiv.style.display = 'block';
+            orderInfo.style.display = 'block';
+            orderDetails.textContent = `Undelivered items from tables: ${returnTables.join(', ')}`;
+
+            addLog(`Robot returned to kitchen with undelivered items from tables: ${returnTables.join(', ')}`, 'warning');
+
+            let remaining = timeout;
+            timeSpan.textContent = remaining;
+
+            returnTimer = setInterval(() => {
+                remaining--;
+                timeSpan.textContent = remaining;
+
+                if (remaining <= 10) {
+                    timerDiv.classList.add('warning');
+                }
+
+                if (remaining <= 0) {
+                    clearInterval(returnTimer);
+                    deactivateReturn(true);
+                }
+            }, 1000);
+        }
+
+        function deactivateReturn(timeout = false) {
+            const panel = document.getElementById('returnPanel');
+            const btn = document.getElementById('returnBtn');
+            const timerDiv = document.getElementById('returnTimer');
+            const orderInfo = document.getElementById('returnOrderInfo');
+
+            panel.classList.remove('active');
+            btn.classList.remove('return-enabled');
+            btn.classList.add('disabled');
+            btn.textContent = 'Waiting for Returns...';
+            timerDiv.style.display = 'none';
+            timerDiv.classList.remove('warning');
+            orderInfo.style.display = 'none';
+
+            if (returnTimer) {
+                clearInterval(returnTimer);
+                returnTimer = null;
+            }
+
+            if (timeout) {
+                addLog('Return confirmation timeout!', 'error');
+            }
+        }
+
+        function confirmReturn() {
+            const btn = document.getElementById('returnBtn');
+            
+            if (!btn.classList.contains('return-enabled')) {
+                return;
+            }
+
+            btn.classList.remove('return-enabled');
+            btn.classList.add('return-confirmed');
+            btn.textContent = 'Return Confirmed! ✓';
+            
+            addLog('Returned items received and confirmed by kitchen staff.', 'success');
+
+            if (returnTimer) {
+                clearInterval(returnTimer);
+                returnTimer = null;
+            }
+
+            setTimeout(() => {
+                deactivateReturn();
+            }, 2000);
+        }
+
+        function addLog(message, type = 'info') {
+            const logContent = document.getElementById('logContent');
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.innerHTML = `<span class="log-time">[${timeStr}]</span>${message}`;
+            
+            logContent.appendChild(entry);
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+
+        // Demo (remove in production)
+        setTimeout(() => {
+            if (sessionStorage.getItem('kitchenAdmin') === 'true') {
+                simulatePickupRequest([1, 2, 3]);
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

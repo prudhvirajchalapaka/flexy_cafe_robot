@@ -1,0 +1,58 @@
+<!--
+  This behavior tree implements a more dynamic navigation approach with:
+  - Frequent replanning when stuck
+  - Recovery behaviors for obstacle navigation  
+  - Better failure handling
+-->
+
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="6" name="NavigateRecovery">
+      <PipelineSequence name="NavigateWithReplanning">
+        <RateController hz="1.0">
+          <RecoveryNode number_of_retries="1" name="ComputePathToPose">
+            <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+            <ReactiveFallback name="ComputePathRecoveryFallback">
+              <GoalUpdated/>
+              <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
+            </ReactiveFallback>
+          </RecoveryNode>
+        </RateController>
+        
+        <RecoveryNode number_of_retries="1" name="FollowPath">
+          <RateController hz="2.0">
+            <FollowPath path="{path}" controller_id="FollowPath"/>
+          </RateController>
+          <ReactiveFallback name="FollowPathRecoveryFallback">
+            <GoalUpdated/>
+            <RoundRobin name="RecoveryActions">
+              <Sequence name="ClearingRecovery">
+                <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+                <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
+              </Sequence>
+              <Spin spin_dist="1.57" time_allowance="10"/>
+              <BackUp backup_dist="0.15" backup_speed="0.025" time_allowance="10"/>
+              <Wait wait_duration="2"/>
+            </RoundRobin>
+          </ReactiveFallback>
+        </RecoveryNode>
+      </PipelineSequence>
+      
+      <ReactiveFallback name="RecoveryFallback">
+        <GoalUpdated/>
+        <RoundRobin name="RecoveryActions">
+          <Sequence name="ClearingAndSpin">
+            <ClearEntireCostmap name="ClearLocalCostmap-Sync" service_name="local_costmap/clear_entirely_local_costmap"/>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Sync" service_name="global_costmap/clear_entirely_global_costmap"/>
+            <Spin spin_dist="1.57" time_allowance="10"/>
+          </Sequence>
+          <Sequence name="BackupAndTurn">
+            <BackUp backup_dist="0.20" backup_speed="0.025" time_allowance="15"/>
+            <Spin spin_dist="1.57" time_allowance="10"/>
+          </Sequence>
+          <Wait wait_duration="5"/>
+        </RoundRobin>
+      </ReactiveFallback>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>
